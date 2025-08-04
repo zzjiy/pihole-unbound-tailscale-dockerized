@@ -158,6 +158,11 @@ nslookup google.com 100.x.x.x
 
 ---
 
-## 📜 License
+## ✨ License
 
-MIT License. You can use, modify, or redistribute for personal or commercial use.
+This project is licensed under the [MIT License](LICENSE).
+You're free to use, modify, and share it — personally or commercially.
+
+Feel free to fork it, improve it for your own setup, or share with others!
+
+---
