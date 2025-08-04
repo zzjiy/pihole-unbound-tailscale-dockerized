@@ -80,6 +80,7 @@ Created `docker-compose.yml` with services:
 
 ### 4. Set ACL Tag Permissions
 
+```json
 "tagOwners": {
   "tag:pihole": ["user:your_email@example.com"]
 },
@@ -90,7 +91,7 @@ Created `docker-compose.yml` with services:
     "dst": ["*:*"]
   }
 ]
-
+```
 
 ### 5. Start Services
 
