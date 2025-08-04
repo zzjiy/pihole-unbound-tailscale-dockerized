@@ -22,6 +22,7 @@
     
 
     iptables -A INPUT -s 100.0.0.0/8 -p udp --dport 53 -j ACCEPT
+
     iptables -A INPUT -s 100.0.0.0/8 -p tcp --dport 53 -j ACCEPT
     
     
@@ -39,5 +40,7 @@
 
 #### ❌ Problem: socat port forwarding failed (port already in use)
 
-- **Fix**: Identified `limactl` occupying UDP 5335 using `lsof -iUDP:5335`, then killed and restarted socat
+- **Fix**: Identified `limactl` occupying UDP 5335 using `lsof 
+
+-iUDP:5335`, then killed and restarted socat
     
