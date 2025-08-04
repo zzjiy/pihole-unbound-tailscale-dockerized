@@ -1,0 +1,15 @@
+# Secrets & personal envs
+.env
+tailscale-auth.key
+
+# Docker volumes (Pi-hole, Unbound, Tailscale)
+**/etc-pihole/*
+**/etc-dnsmasq.d/*
+unbound/var/
+unbound/dev/
+tailscale-data/
+unbound-conf/
+
+# System files
+*.DS_Store
+

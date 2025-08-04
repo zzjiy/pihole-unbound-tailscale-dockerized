@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  unbound:
+    container_name: unbound
+    image: mvance/unbound:latest
+    restart: unless-stopped
+    ports:
+      - "5335:5335/udp"
+    volumes:
+      - ./unbound/unbound.conf:/opt/unbound/etc/unbound/unbound.conf:ro
+      - ./unbound/root.hints:/opt/unbound/etc/unbound/root.hints:ro
+      - ./unbound/root.key:/opt/unbound/etc/unbound/root.key:ro
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    depends_on:
+      - unbound
+    environment:
+      TZ: "Asia/Kolkata"
+      WEBPASSWORD: "changeme"
+      PIHOLE_DNS_: "127.0.0.1#5335"
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./pihole/etc-pihole/:/etc/pihole/
+      - ./pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+
+  tailscale:
+    image: tailscale/tailscale
+    container_name: tailscale
+    hostname: pihole-dns
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+      - TS_ROUTES=""
+      - TS_EXTRA_ARGS=--advertise-tags=tag:pihole --accept-dns=false
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+      - ./tailscale:/var/lib/tailscale
+    restart: unless-stopped
+
+networks:
+  default:
+    name: dns-net
