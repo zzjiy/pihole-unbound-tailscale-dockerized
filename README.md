@@ -49,6 +49,8 @@ Install Colima and start it:
 
 
 brew install colima
+
+
 colima start --memory 2 --cpu 2 --disk 15
 
 
