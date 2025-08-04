@@ -119,10 +119,10 @@ Tailscale container auto-joined the network, Pi-hole was accessible locally.
 Tested DNS queries from remote Tailscale-connected devices:
 
 
-nslookup doubleclick.net 100.x.x.x
+nslookup google.com 100.x.x.x
 # Expected output:
-# Name: doubleclick.net
-# Address: 0.0.0.0
+# Name: google.com
+# Address: 142.251.221.110
 
 ![remote-access](/screenshots/nslookup.png)
 
