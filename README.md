@@ -139,6 +139,7 @@ Address: 142.251.221.110
 🚀 Future Plans
 
 - Add DNS-over-HTTPS fallback
+- Setup Headscale server 
 - Use Raspberry Pi or always-on NUC
 - Integrate 2FA for Pi-hole admin
 - Add logging and monitoring for DNS performance
