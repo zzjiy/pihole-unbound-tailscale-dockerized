@@ -145,6 +145,10 @@ Address: 142.251.221.110
 
 ## ✨ License
 
-This project is licensed under the [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-. You're free to use, modify, and share it — personally or commercially.
+## ✨ License
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+This project is licensed under the [MIT License](LICENSE).  
+You're free to use, modify, and share it — personally or commercially.  
 Feel free to fork it, improve it for your own setup, or share with others!
