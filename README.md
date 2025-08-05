@@ -143,7 +143,8 @@ Address: 142.251.221.110
 - Integrate 2FA for Pi-hole admin
 - Add logging and monitoring for DNS performance
 
-✨ License
+## ✨ License
+
 This project is licensed under the [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 . You're free to use, modify, and share it — personally or commercially.
 Feel free to fork it, improve it for your own setup, or share with others!
