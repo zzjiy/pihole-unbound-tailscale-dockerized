@@ -144,7 +144,6 @@ Address: 142.251.221.110
 - Integrate 2FA for Pi-hole admin
 - Add logging and monitoring for DNS performance
 
-## ✨ License
 
 ## ✨ License
 
