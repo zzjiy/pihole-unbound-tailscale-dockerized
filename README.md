@@ -75,6 +75,7 @@ Used that auth key in Docker Compose for Tailscale container
 
 4. Set ACL Tag Permissions
 
+```json
 "tagOwners": {
   "tag:pihole": ["user:your_email@example.com"]
 },
@@ -85,6 +86,8 @@ Used that auth key in Docker Compose for Tailscale container
     "dst": ["*:*"]
   }
 ]
+```
+
 5. Start Services
 
 docker compose up -d
