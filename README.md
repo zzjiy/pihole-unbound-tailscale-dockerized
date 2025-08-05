@@ -1,6 +1,7 @@
-Private DNS Ad-Blocking and Remote Access with Pi-hole + Unbound + Tailscale
+## Private DNS Ad-Blocking and Remote Access with Pi-hole + Unbound + Tailscale
 
 👋 Why I Built This
+
 I care about online privacy and wanted to block ads and trackers across all my devices, not just in browsers. Public DNS providers like Google or Cloudflare are fast, but often log user data. I wanted full control over DNS resolution and to keep it private.
 
 My internet provider (Jio Fiber) uses CGNAT, so I don’t get a public IP address. That makes remote access tricky. This project uses Tailscale to solve that problem while offering secure DNS resolution and ad-blocking.
