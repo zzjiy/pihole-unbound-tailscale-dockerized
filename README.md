@@ -8,22 +8,22 @@ My internet provider (Jio Fiber) uses CGNAT, so I don’t get a public IP addres
 
 🔍 Problems Solved
 
-Block ads and trackers across all devices
-Encrypt and control DNS traffic (no third-party logging)
-Secure, recursive DNS resolution via Unbound
-Enable remote DNS and Pi-hole admin access even behind CGNAT
-Learn real-world Linux, Docker, VPN, DNS, and firewall management
+- Block ads and trackers across all devices
+- Encrypt and control DNS traffic (no third-party logging)
+- Secure, recursive DNS resolution via Unbound
+- Enable remote DNS and Pi-hole admin access even behind CGNAT
+- Learn real-world Linux, Docker, VPN, DNS, and firewall management
 
 ![Architecture](/screenshots/Architecure-Pihole+Docker.png)
 
 🧰 Tools Used
 
-macOS (host)
-Colima to run Docker with Lima backend on macOS
-Docker for containerization
-Pi-hole (ad-blocking DNS)
-Unbound (recursive DNS resolver)
-Tailscale (zero-config WireGuard-based VPN)
+- macOS (host)
+- Colima to run Docker with Lima backend on macOS
+- Docker for containerization
+- Pi-hole (ad-blocking DNS)
+- Unbound (recursive DNS resolver)
+- Tailscale (zero-config WireGuard-based VPN)
 
 🛠️ How I Built It
 
@@ -69,6 +69,7 @@ curl -o ./unbound/root.key https://data.iana.org/root-anchors/root.key
 Make sure your unbound.conf file is also in the unbound/ directory and properly configured.
 
 3. Generate Tailscale Auth Key
+
 Went to Tailscale admin panel
 Created an ACL tag (e.g. tag:pihole)
 Generated an auth key tagged with tag:pihole
@@ -98,11 +99,13 @@ Tailscale container auto-joined the network, and Pi-hole was accessible locally.
 ![Pihole](/screenshots/Pihole-admin-dashboard.png)
 
 5.1 (Optional) Test Unbound Resolution
+
 Ensure Unbound is resolving domains before Pi-hole starts using it:
 
 dig @127.0.0.1 -p 5335 google.com
 
 6. Add Tailscale Global DNS
+
 Opened Tailscale DNS settings
 Added Pi-hole container’s Tailscale IP as a global nameserver (port 53)
 Disabled MagicDNS
@@ -124,20 +127,21 @@ Address: 142.251.221.110
 
 
 🤯 What I Learned
-Difference between recursive and forwarded DNS
-Tailscale ACLs and DNS overrides
-Docker networking and port mappings
-Unbound configuration for Pi-hole
-Colima/Lima integration for macOS-based Docker usage
+- Difference between recursive and forwarded DNS
+- Tailscale ACLs and DNS overrides
+- Docker networking and port mappings
+- Unbound configuration for Pi-hole
+- Colima/Lima integration for macOS-based Docker usage
 
 ![unbound](/screenshots/unbound-logs.png)
 
 
 🚀 Future Plans
-Add DNS-over-HTTPS fallback
-Use Raspberry Pi or always-on NUC
-Integrate 2FA for Pi-hole admin
-Add logging and monitoring for DNS performance
+
+- Add DNS-over-HTTPS fallback
+- Use Raspberry Pi or always-on NUC
+- Integrate 2FA for Pi-hole admin
+- Add logging and monitoring for DNS performance
 
 ✨ License
 This project is licensed under the [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
