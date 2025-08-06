@@ -1,4 +1,4 @@
-# Secrets & personal envs
+# Sensitive data files
 .env
 tailscale-auth.key
 
