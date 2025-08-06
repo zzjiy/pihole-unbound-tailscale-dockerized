@@ -31,13 +31,17 @@ My internet provider (Jio Fiber) uses CGNAT, so I don’t get a public IP addres
 
 Install Colima and start it:
 
+```shell
 brew install colima
 
 colima start --memory 2 --cpu 2 --disk 15
+```
 
 Ensure Docker is pointed to Colima:
 
+```shell
 export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock
+```
 
 2. Create Docker Compose Setup
 
@@ -49,7 +53,9 @@ Pi-hole using Unbound as upstream DNS
 
 Created necessary folders:
 
+```shell
 mkdir -p unbound pihole/etc-pihole pihole/etc-dnsmasq.d
+```
 
 2.1 Prepare Unbound Files
 
@@ -59,12 +65,15 @@ Download them:
 
 # Root DNS server list
 
+```shell
 curl -o ./unbound/root.hints https://www.internic.net/domain/named.cache
+```
 
 # Root DNSSEC trust key
 
-
+```shell
 curl -o ./unbound/root.key https://data.iana.org/root-anchors/root.key
+```
 
 Make sure your unbound.conf file is also in the unbound/ directory and properly configured.
 
@@ -92,7 +101,9 @@ Used that auth key in Docker Compose for Tailscale container
 
 5. Start Services
 
+```shell
 docker compose up -d
+```
 
 Tailscale container auto-joined the network, and Pi-hole was accessible locally.
 
@@ -102,7 +113,9 @@ Tailscale container auto-joined the network, and Pi-hole was accessible locally.
 
 Ensure Unbound is resolving domains before Pi-hole starts using it:
 
+```shell
 dig @127.0.0.1 -p 5335 google.com
+```
 
 6. Add Tailscale Global DNS
 
@@ -116,7 +129,9 @@ Disabled MagicDNS
 
 Tested DNS queries from remote Tailscale-connected devices:
 
+```shell
 nslookup google.com 100.x.x.x
+```
 
 Expected output:
 
