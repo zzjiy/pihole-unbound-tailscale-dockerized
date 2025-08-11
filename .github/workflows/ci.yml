@@ -1,67 +1,53 @@
-name: Pi-hole + Unbound + Tailscale CI/CD with Colima
+name: Pi-hole + Unbound + Tailscale CI/CD (No Colima)
 
 on:
   push:
-    branches: [master]  # Adjust if your default branch name differs
+    branches: [master]
   pull_request:
     branches: [master]
 
 jobs:
   build-test-deploy:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest  # ✅ Use Ubuntu runner
 
     steps:
       # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Install Homebrew if missing
-      - name: Install Homebrew
-        run: |
-          which brew || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      # 2. Set up Docker (Docker is already preinstalled on Ubuntu runners)
 
-      # 3. Install dependencies (Colima, Docker CLI, docker-compose, bind for dig tool)
-      - name: Install dependencies
-        run: |
-          brew install colima docker docker-compose bind
-
-      # 4. Start Colima VM
-      - name: Start Colima
-        run: |
-          colima start --memory 2 --cpu 2 --disk 15
-          docker version
-
-      # 5. Validate docker-compose config
+      # 3. Validate docker-compose config
       - name: Validate Docker Compose
         run: docker-compose -f docker-compose.yml config -q
 
-      # 6. Validate Unbound config syntax
+      # 4. Validate Unbound config syntax
       - name: Validate Unbound config
         run: |
           docker run --rm -v $PWD/unbound-conf:/opt/unbound/etc/unbound:ro \
           mvance/unbound unbound-checkconf /opt/unbound/etc/unbound/unbound.conf
 
-      # 7. Build Docker images
+      # 5. Build Docker images
       - name: Build Docker images
         run: docker-compose -f docker-compose.yml build
 
-      # 8. Start services
+      # 6. Start services
       - name: Start Pi-hole + Unbound + Tailscale
         run: docker-compose -f docker-compose.yml up -d
 
-      # 9. Wait for containers to be ready
+      # 7. Wait for containers to be ready
       - name: Wait for services
         run: sleep 20
 
-      # 10. Update Pi-hole blocklists (gravity)
+      # 8. Update Pi-hole blocklists (gravity)
       - name: Update Pi-hole blocklists
         run: docker exec pihole pihole -g
 
-      # 11. Test DNS resolution via Unbound
+      # 9. Test DNS resolution via Unbound
       - name: Test DNS resolution via Unbound
         run: dig @127.0.0.1 -p 5335 google.com +short
 
-      # 12. Verify Pi-hole blocks ad domain
+      # 10. Verify Pi-hole blocks ad domain
       - name: Verify Pi-hole blocks ad domain
         run: |
           BLOCKED_IP="0.0.0.0"
@@ -69,19 +55,19 @@ jobs:
           QUERY_RESULT=$(docker exec pihole dig +short $TEST_DOMAIN)
           echo "Query result for $TEST_DOMAIN: $QUERY_RESULT"
           if [[ "$QUERY_RESULT" != "$BLOCKED_IP" ]]; then
-            echo "ERROR: Pi-hole is not blocking $TEST_DOMAIN as expected."
+            echo "❌ ERROR: Pi-hole is not blocking $TEST_DOMAIN as expected."
             exit 1
           fi
           echo "✅ Pi-hole successfully blocks $TEST_DOMAIN."
 
-      # 13. Security scan (Trivy)
+      # 11. Security scan (Trivy)
       - name: Security scan for Pi-hole image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: pihole/pihole:latest
-          exit-code: 0  # Don't fail on vulnerabilities yet
+          exit-code: 0
 
-      # 14. Tear down services after tests
+      # 12. Cleanup
       - name: Cleanup
         if: always()
         run: docker-compose -f docker-compose.yml down -v
