@@ -2,7 +2,7 @@ name: Pi-hole + Unbound + Tailscale CI/CD (Ubuntu)
 
 on:
   push:
-    branches: [master]   # Changed to master as per your repo
+    branches: [master]  # or main, set this to your default branch
   pull_request:
     branches: [master]
 
@@ -11,49 +11,39 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AUTHKEY: ${{ secrets.AUTHKEY }} # Tailscale auth key from GitHub Secrets
+      AUTHKEY: ${{ secrets.AUTHKEY }}  # Your Tailscale auth key stored in GitHub Secrets
 
     steps:
-      # 1. Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Install dependencies (Docker Compose v2 is already on Ubuntu runners)
-      - name: Update apt & install bind-utils for dig tool
+      - name: Install dependencies (dig tool)
         run: sudo apt-get update && sudo apt-get install -y dnsutils
 
-      # 3. Validate docker-compose config
-      - name: Validate Docker Compose
+      - name: Validate Docker Compose configuration
         run: docker compose -f docker-compose.yml config -q
 
-      # 4. Validate Unbound config
-      - name: Validate Unbound config
+      - name: Validate Unbound config syntax
         run: |
           docker run --rm -v $PWD/unbound-conf/unbound.conf:/etc/unbound/unbound.conf:ro \
           mvance/unbound unbound-checkconf /etc/unbound/unbound.conf
 
-      # 5. Build images
       - name: Build Docker images
         run: docker compose -f docker-compose.yml build
 
-      # 6. Start services
-      - name: Start Pi-hole + Unbound + Tailscale
+      - name: Start Pi-hole + Unbound + Tailscale services
         run: docker compose -f docker-compose.yml up -d
 
-      # 7. Wait for services to be ready
-      - name: Wait for services
+      - name: Wait for services to start
         run: sleep 20
 
-      # 8. Update Pi-hole blocklists
-      - name: Update Pi-hole blocklists
+      - name: Update Pi-hole blocklists (gravity)
         run: docker exec pihole pihole -g
 
-      # 9. Test DNS resolution via Unbound
       - name: Test DNS resolution via Unbound
         run: dig @127.0.0.1 -p 5335 google.com +short
 
-      # 10. End-to-end Pi-hole blocking test
-      - name: Verify Pi-hole blocks ad domain
+      - name: Verify Pi-hole blocks an ad domain
         run: |
           BLOCKED_IP="0.0.0.0"
           TEST_DOMAIN="doubleclick.net"
@@ -65,15 +55,13 @@ jobs:
           fi
           echo "✅ Pi-hole successfully blocks $TEST_DOMAIN."
 
-      # 11. Security scan (Trivy)
-      - name: Security scan for Pi-hole image
+      - name: Security vulnerability scan for Pi-hole image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: pihole/pihole:latest
           exit-code: 0
 
-      # 12. Cleanup
-      - name: Cleanup
+      - name: Cleanup Docker Compose services
         if: always()
         run: docker compose -f docker-compose.yml down -v
 
