@@ -1,6 +1,8 @@
+
+
 services:
   unbound:
-    image: mvance/unbound:latest
+    image: tiredofit/unbound:latest
     platform: linux/arm64
     container_name: unbound
     restart: unless-stopped
@@ -8,14 +10,14 @@ services:
       - "5335:53/udp"
     environment:
       - LISTEN_PORT=5335
-      - CUSTOM_RESOLVER_CONF=/opt/unbound/etc/unbound/unbound.conf
+      - CUSTOM_RESOLVER_CONF=/etc/unbound/unbound.conf
     volumes:
-      - ./unbound-conf:/opt/unbound/etc/unbound:ro
+      - ./unbound-conf/unbound.conf:/etc/unbound/unbound.conf:ro
+      - ./unbound-conf/root.hints:/etc/unbound/root.hints:ro
+      - ./unbound-conf/root.key:/etc/unbound/root.key:ro
     networks:
       pihole_net:
         ipv4_address: 172.22.0.10
-    # Explicit platform set to avoid warnings
-    # Adjust image if you want another version
 
   tailscale:
     image: tailscale/tailscale:latest
@@ -23,7 +25,7 @@ services:
     container_name: tailscale-pihole
     hostname: pihole-server
     environment:
-      - TS_AUTHKEY=${AUTHKEY}  # Make sure this is set in environment or GitHub secret
+      - TS_AUTHKEY=${AUTHKEY}  # Replace with your key
       - TS_EXTRA_ARGS=--accept-dns=false --advertise-tags=tag:dns
       - TS_STATE_DIR=/var/lib/tailscale
     volumes:
@@ -67,4 +69,5 @@ networks:
 volumes:
   tailscale-data:
     driver: local
+
 
