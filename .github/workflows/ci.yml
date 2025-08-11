@@ -1,4 +1,4 @@
-name: Pi-hole + Unbound + Tailscale CI/CD (No Colima)
+name: Pi-hole + Unbound + Tailscale CI/CD
 
 on:
   push:
@@ -8,18 +8,22 @@ on:
 
 jobs:
   build-test-deploy:
-    runs-on: ubuntu-latest  # ✅ Use Ubuntu runner
+    runs-on: ubuntu-latest
 
     steps:
       # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Set up Docker (Docker is already preinstalled on Ubuntu runners)
+      # 2. Verify Docker & Compose versions (sanity check)
+      - name: Verify Docker and Compose
+        run: |
+          docker --version
+          docker compose version
 
       # 3. Validate docker-compose config
       - name: Validate Docker Compose
-        run: docker-compose -f docker-compose.yml config -q
+        run: docker compose -f docker-compose.yml config -q
 
       # 4. Validate Unbound config syntax
       - name: Validate Unbound config
@@ -29,11 +33,11 @@ jobs:
 
       # 5. Build Docker images
       - name: Build Docker images
-        run: docker-compose -f docker-compose.yml build
+        run: docker compose -f docker-compose.yml build
 
       # 6. Start services
       - name: Start Pi-hole + Unbound + Tailscale
-        run: docker-compose -f docker-compose.yml up -d
+        run: docker compose -f docker-compose.yml up -d
 
       # 7. Wait for containers to be ready
       - name: Wait for services
@@ -65,10 +69,10 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: pihole/pihole:latest
-          exit-code: 0
+          exit-code: 0  # Don't fail build on vulnerabilities yet
 
       # 12. Cleanup
       - name: Cleanup
         if: always()
-        run: docker-compose -f docker-compose.yml down -v
+        run: docker compose -f docker-compose.yml down -v
 
