@@ -2,7 +2,7 @@ name: Pi-hole + Unbound + Tailscale CI/CD (Ubuntu)
 
 on:
   push:
-    branches: [master]  # or main, set this to your default branch
+    branches: [master]  # Change if your default branch is different
   pull_request:
     branches: [master]
 
@@ -11,39 +11,49 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AUTHKEY: ${{ secrets.AUTHKEY }}  # Your Tailscale auth key stored in GitHub Secrets
+      AUTHKEY: ${{ secrets.AUTHKEY }}  # Make sure you add this secret in your repo settings
 
     steps:
+      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install dependencies (dig tool)
+      # 2. Install dnsutils for dig command
+      - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y dnsutils
 
-      - name: Validate Docker Compose configuration
+      # 3. Validate Docker Compose config
+      - name: Validate Docker Compose
         run: docker compose -f docker-compose.yml config -q
 
-      - name: Validate Unbound config syntax
+      # 4. Validate Unbound config syntax
+      - name: Validate Unbound config
         run: |
-          docker run --rm -v $PWD/unbound-conf/unbound.conf:/etc/unbound/unbound.conf:ro \
-          mvance/unbound unbound-checkconf /etc/unbound/unbound.conf
+          docker run --rm -v $PWD/unbound-conf:/opt/unbound/etc/unbound:ro \
+          mvance/unbound unbound-checkconf /opt/unbound/etc/unbound/unbound.conf
 
+      # 5. Build Docker images
       - name: Build Docker images
         run: docker compose -f docker-compose.yml build
 
-      - name: Start Pi-hole + Unbound + Tailscale services
+      # 6. Start containers
+      - name: Start Pi-hole + Unbound + Tailscale
         run: docker compose -f docker-compose.yml up -d
 
-      - name: Wait for services to start
+      # 7. Wait for containers to initialize
+      - name: Wait for services
         run: sleep 20
 
-      - name: Update Pi-hole blocklists (gravity)
+      # 8. Update Pi-hole blocklists (gravity)
+      - name: Update Pi-hole blocklists
         run: docker exec pihole pihole -g
 
+      # 9. Test DNS resolution through Unbound port 5335
       - name: Test DNS resolution via Unbound
         run: dig @127.0.0.1 -p 5335 google.com +short
 
-      - name: Verify Pi-hole blocks an ad domain
+      # 10. Verify Pi-hole blocks known ad domain
+      - name: Verify Pi-hole blocks ad domain
         run: |
           BLOCKED_IP="0.0.0.0"
           TEST_DOMAIN="doubleclick.net"
@@ -55,13 +65,15 @@ jobs:
           fi
           echo "✅ Pi-hole successfully blocks $TEST_DOMAIN."
 
-      - name: Security vulnerability scan for Pi-hole image
+      # 11. Run security scan on Pi-hole image
+      - name: Security scan for Pi-hole image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: pihole/pihole:latest
           exit-code: 0
 
-      - name: Cleanup Docker Compose services
+      # 12. Tear down containers and clean up volumes
+      - name: Cleanup
         if: always()
         run: docker compose -f docker-compose.yml down -v
 
